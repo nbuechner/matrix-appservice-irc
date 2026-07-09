@@ -4,6 +4,7 @@ appservice-registration-irc.yaml
 spec-db
 .idea/*
 .*.swp
+.claude/
 
 # Logs
 logs
