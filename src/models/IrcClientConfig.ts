@@ -21,6 +21,7 @@ export interface IrcClientConfigSeralized {
     password?: string;
     nick?: string;
     ipv6?: string;
+    saslAccount?: string;
 }
 
 /**
@@ -82,6 +83,18 @@ export class IrcClientConfig {
         return this.config.ipv6;
     }
 
+    /**
+     * The SASL/NickServ account name to authenticate as, if it differs from the nick in use.
+     * Most networks treat these as the same, in which case this should be left unset.
+     */
+    public setSaslAccount(account?: string) {
+        this.config.saslAccount = account;
+    }
+
+    public getSaslAccount(): string|undefined {
+        return this.config.saslAccount;
+    }
+
     public serialize(removePassword = false) {
         if (removePassword) {
             const clone = JSON.parse(JSON.stringify(this.config));
@@ -96,6 +109,7 @@ export class IrcClientConfig {
             username: this.config.username,
             nick: this.config.nick,
             ipv6: this.config.ipv6,
+            saslAccount: this.config.saslAccount,
             password: this.config.password ? '<REDACTED>' : undefined,
         };
         return this.userId + "=>" + this.domain + "=" + JSON.stringify(redactedConfig);

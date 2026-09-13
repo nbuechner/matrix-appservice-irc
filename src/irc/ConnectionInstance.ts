@@ -61,6 +61,11 @@ function logError(err: Error) {
 export interface ConnectionOpts {
     localAddress?: string;
     password?: string;
+    /**
+     * The SASL/NickServ account name to authenticate as, if it differs from the nick. Most
+     * networks treat these as the same, so this is usually left unset.
+     */
+    saslAccount?: string;
     realname: string;
     username?: string;
     nick: string;
@@ -408,6 +413,7 @@ export class ConnectionInstance {
             userName: opts.username,
             realName: opts.realname,
             password: opts.password,
+            saslAccount: opts.saslAccount,
             localAddress: opts.localAddress,
             autoConnect: false,
             autoRejoin: false,

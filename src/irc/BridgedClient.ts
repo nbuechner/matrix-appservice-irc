@@ -247,6 +247,7 @@ export class BridgedClient extends EventEmitter {
                 username: nameInfo.username,
                 realname: nameInfo.realname,
                 password: this.password,
+                saslAccount: this.clientConfig.getSaslAccount(),
                 // Don't use stored IPv6 addresses unless they have a prefix else they
                 // won't be able to turn off IPv6!
                 localAddress: (

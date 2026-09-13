@@ -133,6 +133,11 @@ const COMMANDS: {[command: string]: Command|Heading} = {
         example: `!username [irc.example.net] username`,
         summary: "Store a username to use for future connections.",
     },
+    "saslaccount": {
+        example: `!saslaccount [irc.example.net] accountname`,
+        summary: "Store the account name to authenticate as via SASL, if it differs from your nick. " +
+                "Use '!saslaccount [irc.example.net]' with no account name to clear it.",
+    },
     'Info': { heading: true},
     "bridgeversion": {
         example: `!bridgeversion`,
@@ -225,6 +230,8 @@ export class AdminRoomHandler {
                 return await this.handleReconnect(req, args, event.sender);
             case "username":
                 return await this.handleUsername(req, args, event.sender)
+            case "saslaccount":
+                return await this.handleSaslAccount(req, args, event.sender)
             case "storepass":
                 return await this.handleStorePass(req, args, event.sender);
             case "removepass":
@@ -580,6 +587,56 @@ export class AdminRoomHandler {
         }
         return notice;
 
+    }
+
+    private async handleSaslAccount(req: BridgeRequest, args: string[], userId: string) {
+        const server = this.extractServerFromArgs(args);
+
+        const domain = server.domain;
+        const store = this.ircBridge.getStore();
+        let notice;
+
+        try {
+            const account = args[0]?.trim();
+            const invalidChars = account ? SASL_USERNAME_INVALID_CHARS_PATTERN.exec(account) : null;
+            if (account && account.length > SANE_USERNAME_LENGTH) {
+                notice = new MatrixAction(
+                    ActionType.Notice,
+                    `Account name is longer than the maximum permitted by the bridge (${SANE_USERNAME_LENGTH}).`
+                );
+            }
+            else if (invalidChars !== null) {
+                notice = new MatrixAction(
+                    ActionType.Notice,
+                    "Account name contained invalid characters not supported by IRC " +
+                    `(${JSON.stringify(invalidChars.join(""))}).`
+                );
+            }
+            else {
+                let config = await store.getIrcClientConfig(userId, server.domain);
+                if (!config) {
+                    config = IrcClientConfig.newConfig(
+                        new MatrixUser(userId), server.domain
+                    );
+                }
+                config.setSaslAccount(account || undefined);
+                await this.ircBridge.getStore().storeIrcClientConfig(config);
+                notice = new MatrixAction(
+                    ActionType.Notice,
+                    account
+                        ? `Successfully stored SASL account name for ${domain}. Use !reconnect to use this now.`
+                        : `Cleared the stored SASL account name for ${domain}; your nick will be used instead. ` +
+                          `Use !reconnect to use this now.`
+                );
+            }
+        }
+        catch (err) {
+            req.log.error(err.stack);
+            return new MatrixAction(
+                ActionType.Notice, `Failed to store SASL account name: ${err.message}`
+            );
+        }
+        return notice;
     }
 
     private async handleStorePass(req: BridgeRequest, args: string[], userId: string) {
