@@ -42,7 +42,7 @@
     "ioredis": "^5.3.1",
     "logform": "^2.4.2",
     "matrix-appservice-bridge": "nbuechner/matrix-appservice-bridge#develop",
-    "matrix-org-irc": "^3.1.0",
+    "matrix-org-irc": "nbuechner/node-irc#fix-sasl-plain-authcid",
     "nedb": "^1.8.0",
     "nopt": "^7.2.0",
     "p-queue": "^8.0.1",
